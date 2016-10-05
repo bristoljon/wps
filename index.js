@@ -1,15 +1,16 @@
 var synaptic = require('synaptic');
+var path = require('path');
+var fs = require('fs');
+var parseCSV = require("csv-to-array");
 var Architect = synaptic.Architect;
 var Trainer = synaptic.Trainer;
 
 const MAX_X = 10;
 const MAX_Y = 10;
-const MAX_INPUTS = 28;
-
 let uniqueAPs = 0;
 const ssidIndex = {};
 
-const normaliseInput = (snapshot) => {
+const normaliseInput = ({data, x, y}) => {
     const normaliseLevel = level => {
         return level / 100;
     }
@@ -19,29 +20,27 @@ const normaliseInput = (snapshot) => {
             y / MAX_Y,
         ]
     }
-    const normalised = snapshot.data.map(ap => {
-        let ssid, level, input;
-        ssid = ssidIndex[ap.ssid];
-        level = normaliseLevel(ap.level);
-        input = ssid.concat(level);
-        output = normaliseLocation(snapshot.x, snapshot.y);
+    const normalised = data.map(ap => {
+        const level = normaliseLevel(ap.level);
+        const input = ssidIndex[ap.ssid].concat(level);
+        const output = normaliseLocation(x, y);
         return {
             input,
             output,
         }
     });
-    Object.keys(ssidIndex).forEach(ssid => {
-        let missing = true;
-        snapshot.data.forEach(ap => {
-            if (ap.ssid === ssid) missing = false;
-        })
-        if (missing) {
-            normalised.push({
-                input: ssidIndex[ssid].concat([0.99]),
-                output: normaliseLocation(snapshot.x, snapshot.y),
-            })
-        }
-    });
+    // Object.keys(ssidIndex).forEach(ssid => {
+    //     let missing = true;
+    //     data.forEach(ap => {
+    //         if (ap.ssid === ssid) missing = false;
+    //     })
+    //     if (missing) {
+    //         normalised.push({
+    //             input: ssidIndex[ssid].concat([1]),
+    //             output: normaliseLocation(x, y),
+    //         })
+    //     }
+    // });
     return normalised;
 };
 const test11 = [ [ 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.37 ],
@@ -80,16 +79,11 @@ const test00 = [ [ 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 
 
 const makeTrainingSet = (snapshots) => {
-    let ret = [];
     const snaps = snapshots.map(snapshot => {
         return normaliseInput(snapshot);
     });
     return [].concat.apply([], snaps);
 }
-
-var path = require('path');
-var fs=require('fs');
-var parseCSV = require("csv-to-array");
 
 const getSnapshots = () => {
     var columns = ["SSID", "mac", "auth", "frequency", "channel", "level"];
@@ -100,9 +94,7 @@ const getSnapshots = () => {
         let csvProcessed = 0;
         fs.readdir('./', (e, files) => {
             files.forEach((file, index) => {
-                if (index === files.length - 1) {
-                    canResolve = true;
-                }
+                if (index === files.length - 1) canResolve = true;
                 if (file.substr(-4) !== '.csv') return;
                 csvCount ++;
                 const filename = file.split('.')[0];
@@ -115,7 +107,7 @@ const getSnapshots = () => {
                     snapshots.push({
                         x,
                         y,
-                        data,
+                        data: parseData(data),
                     });
                     csvProcessed ++;
                     if (canResolve && csvProcessed === csvCount) resolve(snapshots);
@@ -146,62 +138,69 @@ const parseData = (data) => {
             else code.push(1);
         };
         ssidIndex[ssid] = code;
-    })
-
-
+    });
     return parsed;
 };
 
 const parseOutput = (output) => {
     return {
-        x: output[0] * MAX_X,
-        y: output[1] * MAX_Y,
+        x: (output[0] * MAX_X).toFixed(2),
+        y: (output[1] * MAX_Y).toFixed(2),
     }
 };
 
 getSnapshots().then(snapshots => {
     console.log('snapshots', snapshots.length);
-    const parsed = snapshots.map(({x, y, data}) => {
-        return {
-            x,
-            y,
-            data: parseData(data),
-        }
-    });
     console.log('uniqueAPs', uniqueAPs);
 
-    var network = new Architect.Perceptron(uniqueAPs + 1, 10, 2)
+    var network = new Architect.Perceptron(uniqueAPs + 1, 12, 2)
     var trainer = new Trainer(network);
-    var trainingSet = makeTrainingSet(parsed);
+    var trainingSet = makeTrainingSet(snapshots);
 
     console.log('trainingSets', trainingSet.length);
 
     console.log('ssidIndex', Object.keys(ssidIndex).length);
     // console.log(trainingSet);
+
+    const getInput = (x, y) => {
+        return trainingSet.filter(set => {
+            return set.output[0] === x && set.output[1] === y;
+        }).map(set => {
+            return set.input;
+        })
+    }
+
+    // console.log(getInput(1,1));
+
+    console.time('Training');
     trainer.train(trainingSet,{
         rate: .1,
-        iterations: 75000,
+        iterations: 50000,
         error: .005,
         shuffle: true,
         log: 10000,
         cost: Trainer.cost.CROSS_ENTROPY
     });
-    console.log(parseOutput(network.activate([ 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ])));
-    console.log(parseOutput(network.activate([ 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 ])));
+    console.timeEnd('Training');
 
     const predict = (list) => {
         const outputs = list.map(ap => {
             return network.activate(ap);
         });
-        console.log('outputs', outputs);
         const sumX = outputs.reduce((total, ap) => { return ap[0] + total }, 0);
         const sumY = outputs.reduce((total, ap) => { return ap[1] + total }, 0);
         const length = outputs.length;
         return parseOutput([sumX / length, sumY / length]);
     };
 
-    console.log('11', predict(test11));
-    console.log('00', predict(test00));
+    console.log('11 - no added', predict(test11));
+    console.log('00 - no added', predict(test00));
+
+    console.log('11', predict(getInput(1,1)));
+    console.log('00', predict(getInput(0,0)));
+    console.log('10', predict(getInput(1,0)));
+    console.log('01', predict(getInput(0,1)));
+
 }).catch(e => console.log(e))
 
 
