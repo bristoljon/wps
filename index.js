@@ -2,35 +2,6 @@ var synaptic = require('synaptic');
 var Architect = synaptic.Architect;
 var Trainer = synaptic.Trainer;
 
-const makeAP = () => {
-    var SSID = "";
-    var level = 50;
-    var possible = "ABCDEFGHIJKLMN";
-    for (var i=0; i < 1; i++ ) {
-        SSID += possible.charAt(Math.floor(Math.random() * possible.length));
-    }
-    level = Math.floor(Math.random() * 100);
-    return {
-        SSID,
-        level,
-    }
-};
-
-const makeSnapshot = (x, y) => {
-    const limit = 10;
-    let apList = [];
-    let amount = 5 + Math.floor(Math.random() * (limit - 5));
-    while (apList.length < amount) {
-        const _ap = makeAP();
-        if (apList.every(ap => ap.SSID !== _ap.SSID)) apList.push(_ap);
-    };
-    return {
-        apList,
-        x,
-        y,
-    }
-};
-
 const MAX_X = 10;
 const MAX_Y = 10;
 const MAX_INPUTS = 20;
@@ -57,7 +28,7 @@ const normaliseInput = (snapshot) => {
             y / MAX_Y,
         ]
     }
-    return snapshot.data.map(ap => {
+    const normalisedData = snapshot.data.map(ap => {
         let ssid, level, input;
         if (ssidIndex[ap.ssid]) ssid = ssidIndex[ap.ssid]
         else ssid = normaliseSSID(ap.ssid)
@@ -68,7 +39,20 @@ const normaliseInput = (snapshot) => {
             input,
             output,
         }
-    })
+    });
+    Object.keys(ssidIndex).forEach(known => {
+        let missing = true;
+        snapshot.data.forEach(detected => {
+            if (known === detected.ssid) missing = false;
+        });
+        if (missing) {
+            normalisedData.push({
+                input: ssidIndex[known].concat([1]),
+                output: normaliseLocation(snapshot.x, snapshot.y),
+            })
+        }
+    });
+    return normalisedData;
 };
 
 const makeTrainingSet = (snapshots) => {
@@ -143,15 +127,8 @@ const predict = (list) => {
     const outputs = list.map(ap => {
         return network.activate(ap);
     })
-    console.log('outputs', outputs);
-    const sumX = outputs.reduce((total, ap) => {
-        console.log('ap, total', ap, total);
-        return ap[0] + total;
-    }, 0);
-    const sumY = outputs.reduce((total, ap) => {
-        console.log('ap, total', ap, total);
-        return ap[1] + total;
-    }, 0);
+    const sumX = outputs.reduce((total, ap) => { return ap[0] + total }, 0);
+    const sumY = outputs.reduce((total, ap) => { return ap[1] + total }, 0);
     const length = outputs.length;
     return parseOutput([sumX / length, sumY / length]);
 }
@@ -177,9 +154,8 @@ const test = [
 ]
 
 getSnapshots().then(snapshots => {
-    console.log('resolve', snapshots.length);
+    console.log('snapshots', snapshots.length);
     const parsed = snapshots.map(({x, y, data}) => {
-        console.log('snapshot x y', x, y);
         return {
             x,
             y,
@@ -188,17 +164,16 @@ getSnapshots().then(snapshots => {
     });
     trainingSet = makeTrainingSet(parsed);
     console.log('trainingSets', trainingSet.length);
-    trainer.train(trainingSet,{
-        rate: .1,
-        iterations: 100000,
-        error: .005,
-        shuffle: true,
-        log: 1000,
-        cost: Trainer.cost.CROSS_ENTROPY
-    });
-    // const out = network.activate([ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0.75 ])
-    // console.log(parseOutput(out));
-    console.log(predict(test));
+    console.log(trainingSet);
+    // trainer.train(trainingSet,{
+    //     rate: .1,
+    //     iterations: 100000,
+    //     error: .005,
+    //     shuffle: true,
+    //     log: 1000,
+    //     cost: Trainer.cost.CROSS_ENTROPY
+    // });
+    // console.log(predict(test));
 }).catch(e => console.log(e))
 
 
