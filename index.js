@@ -85,6 +85,8 @@ const makeTrainingSet = (snapshots) => {
     return [].concat.apply([], snaps);
 }
 
+let queries = [];
+
 const getSnapshots = () => {
     var columns = ["SSID", "mac", "auth", "frequency", "channel", "level"];
     return new Promise((resolve, reject) => {
@@ -98,17 +100,22 @@ const getSnapshots = () => {
                 if (file.substr(-4) !== '.csv') return;
                 csvCount ++;
                 const filename = file.split('.')[0];
-                const x = filename.split('-')[0];
-                const y = filename.split('-')[1];
                 parseCSV({
                     file: path.join(file),
                     columns: columns
                 }, (err, data) => {
-                    snapshots.push({
-                        x,
-                        y,
+                    let it = {
                         data: parseData(data),
-                    });
+                    };
+                    if (filename.indexOf('-') > -1){
+                        it.x = filename.split('-')[0];
+                        it.y = filename.split('-')[1];
+                        snapshots.push(it);
+                    }
+                    else {
+                        it.name = filename;
+                        queries.push(it);
+                    }
                     csvProcessed ++;
                     if (canResolve && csvProcessed === csvCount) resolve(snapshots);
                 });
@@ -152,6 +159,7 @@ const parseOutput = (output) => {
 getSnapshots().then(snapshots => {
     console.log('snapshots', snapshots.length);
     console.log('uniqueAPs', uniqueAPs);
+    console.log(queries[0].data);
 
     var network = new Architect.Perceptron(uniqueAPs + 1, 12, 2)
     var trainer = new Trainer(network);
@@ -172,36 +180,33 @@ getSnapshots().then(snapshots => {
 
     // console.log(getInput(1,1));
 
-    console.time('Training');
-    trainer.train(trainingSet,{
-        rate: .1,
-        iterations: 50000,
-        error: .005,
-        shuffle: true,
-        log: 10000,
-        cost: Trainer.cost.CROSS_ENTROPY
-    });
-    console.timeEnd('Training');
-
-    const predict = (list) => {
-        const outputs = list.map(ap => {
-            return network.activate(ap);
-        });
-        const sumX = outputs.reduce((total, ap) => { return ap[0] + total }, 0);
-        const sumY = outputs.reduce((total, ap) => { return ap[1] + total }, 0);
-        const length = outputs.length;
-        return parseOutput([sumX / length, sumY / length]);
-    };
-
-    console.log('11 - no added', predict(test11));
-    console.log('00 - no added', predict(test00));
-
-    console.log('11', predict(getInput(1,1)));
-    console.log('00', predict(getInput(0,0)));
-    console.log('10', predict(getInput(1,0)));
-    console.log('01', predict(getInput(0,1)));
+    // console.time('Training');
+    // trainer.train(trainingSet,{
+    //     rate: .1,
+    //     iterations: 50000,
+    //     error: .005,
+    //     shuffle: true,
+    //     log: 10000,
+    //     cost: Trainer.cost.CROSS_ENTROPY
+    // });
+    // console.timeEnd('Training');
+    //
+    // const predict = (list) => {
+    //     const outputs = list.map(ap => {
+    //         return network.activate(ap);
+    //     });
+    //     const sumX = outputs.reduce((total, ap) => { return ap[0] + total }, 0);
+    //     const sumY = outputs.reduce((total, ap) => { return ap[1] + total }, 0);
+    //     const length = outputs.length;
+    //     return parseOutput([sumX / length, sumY / length]);
+    // };
+    //
+    // console.log('11 - no added', predict(test11));
+    // console.log('00 - no added', predict(test00));
+    //
+    // console.log('11', predict(getInput(1,1)));
+    // console.log('00', predict(getInput(0,0)));
+    // console.log('10', predict(getInput(1,0)));
+    // console.log('01', predict(getInput(0,1)));
 
 }).catch(e => console.log(e))
-
-
-
