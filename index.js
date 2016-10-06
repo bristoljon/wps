@@ -104,16 +104,16 @@ const getSnapshots = () => {
                     file: path.join(file),
                     columns: columns
                 }, (err, data) => {
-                    let it = {
-                        data: parseData(data),
-                    };
+                    let it = {};
                     if (filename.indexOf('-') > -1){
                         it.x = filename.split('-')[0];
                         it.y = filename.split('-')[1];
+                        it.data = parseData(data),
                         snapshots.push(it);
                     }
                     else {
                         it.name = filename;
+                        it.data = data;
                         queries.push(it);
                     }
                     csvProcessed ++;
@@ -122,6 +122,16 @@ const getSnapshots = () => {
             })
         });
     });
+}
+
+const normaliseQueries = (queries) => {
+    return queries.map(query => {
+        return query.data
+            .filter(ap => !!ssidIndex['m' + ap.mac.replace(/:/g,'')])
+            .map(ap => {
+                return ssidIndex['m' + ap.mac.replace(/:/g,'')].concat(+ap.level.substr(1, 2)/100);
+            })
+    })
 }
 
 const parseData = (data) => {
@@ -159,16 +169,15 @@ const parseOutput = (output) => {
 getSnapshots().then(snapshots => {
     console.log('snapshots', snapshots.length);
     console.log('uniqueAPs', uniqueAPs);
-    console.log(queries[0].data);
+    console.log('queries', queries.length);
 
-    var network = new Architect.Perceptron(uniqueAPs + 1, 12, 2)
+    var network = new Architect.Perceptron(uniqueAPs + 1, 10, 2)
     var trainer = new Trainer(network);
     var trainingSet = makeTrainingSet(snapshots);
 
     console.log('trainingSets', trainingSet.length);
 
     console.log('ssidIndex', Object.keys(ssidIndex).length);
-    // console.log(trainingSet);
 
     const getInput = (x, y) => {
         return trainingSet.filter(set => {
@@ -178,35 +187,39 @@ getSnapshots().then(snapshots => {
         })
     }
 
-    // console.log(getInput(1,1));
+    // console.log(normaliseQueries(queries)[0].length);
 
-    // console.time('Training');
-    // trainer.train(trainingSet,{
-    //     rate: .1,
-    //     iterations: 50000,
-    //     error: .005,
-    //     shuffle: true,
-    //     log: 10000,
-    //     cost: Trainer.cost.CROSS_ENTROPY
-    // });
-    // console.timeEnd('Training');
-    //
-    // const predict = (list) => {
-    //     const outputs = list.map(ap => {
-    //         return network.activate(ap);
-    //     });
-    //     const sumX = outputs.reduce((total, ap) => { return ap[0] + total }, 0);
-    //     const sumY = outputs.reduce((total, ap) => { return ap[1] + total }, 0);
-    //     const length = outputs.length;
-    //     return parseOutput([sumX / length, sumY / length]);
-    // };
-    //
-    // console.log('11 - no added', predict(test11));
-    // console.log('00 - no added', predict(test00));
-    //
-    // console.log('11', predict(getInput(1,1)));
-    // console.log('00', predict(getInput(0,0)));
-    // console.log('10', predict(getInput(1,0)));
-    // console.log('01', predict(getInput(0,1)));
+    console.time('Training');
+    trainer.train(trainingSet,{
+        rate: .1,
+        iterations: 100000,
+        error: .005,
+        shuffle: true,
+        log: 10000,
+        cost: Trainer.cost.CROSS_ENTROPY
+    });
+    console.timeEnd('Training');
+
+    const predict = (list) => {
+        const outputs = list.map(ap => {
+            return network.activate(ap);
+        });
+        const sumX = outputs.reduce((total, ap) => { return ap[0] + total }, 0);
+        const sumY = outputs.reduce((total, ap) => { return ap[1] + total }, 0);
+        const length = outputs.length;
+        return parseOutput([sumX / length, sumY / length]);
+    };
+
+    console.log('11', predict(getInput(1,1)));
+    console.log('00', predict(getInput(0,0)));
+    console.log('10', predict(getInput(1,0)));
+    console.log('01', predict(getInput(0,1)));
+
+    console.log('shelf', predict(normaliseQueries(queries)[0]));
+    console.log('bed', predict(normaliseQueries(queries)[1]));
+    console.log('armchair', predict(normaliseQueries(queries)[2]));
+    console.log('sofa', predict(normaliseQueries(queries)[3]));
 
 }).catch(e => console.log(e))
+
+// document.getElementsByClassName('zoomableimagewrapper')[0].addEventListener('mousemove', e => console.log(e.offsetX, e.offsetY))
