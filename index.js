@@ -10,73 +10,31 @@ const MAX_Y = 10;
 let uniqueAPs = 0;
 const ssidIndex = {};
 
+const normaliseLevel = level => {
+    return (100 - level) / 100;
+}
+
 const normaliseInput = ({data, x, y}) => {
-    const normaliseLevel = level => {
-        return level / 100;
-    }
     const normaliseLocation = (x, y) => {
         return [
             x / MAX_X,
             y / MAX_Y,
         ]
     }
-    const normalised = data.map(ap => {
-        const level = normaliseLevel(ap.level);
-        const input = ssidIndex[ap.ssid].concat(level);
-        const output = normaliseLocation(x, y);
-        return {
-            input,
-            output,
-        }
-    });
-    // Object.keys(ssidIndex).forEach(ssid => {
-    //     let missing = true;
-    //     data.forEach(ap => {
-    //         if (ap.ssid === ssid) missing = false;
-    //     })
-    //     if (missing) {
-    //         normalised.push({
-    //             input: ssidIndex[ssid].concat([1]),
-    //             output: normaliseLocation(x, y),
-    //         })
-    //     }
-    // });
-    return normalised;
+    return {
+        input: normaliseData(data),
+        output: normaliseLocation(x, y),
+    }
 };
-const test11 = [ [ 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.37 ],
-  [ 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.43 ],
-  [ 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.65 ],
-  [ 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.71 ],
-  [ 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.69 ],
-  [ 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.75 ],
-  [ 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.78 ],
-  [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.66 ],
-  [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.78 ],
-  [ 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.78 ],
-  [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0.75 ],
-  [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.69 ],
-  [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0.8 ],
-  [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0.82 ] ];
 
-const test00 = [ [ 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.45 ],
-  [ 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.43 ],
-  [ 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.52 ],
-  [ 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.79 ],
-  [ 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.84 ],
-  [ 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.9 ],
-  [ 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.87 ],
-  [ 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.81 ],
-  [ 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.9 ],
-  [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.9 ],
-  [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.82 ],
-  [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.84 ],
-  [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.9 ],
-  [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.63 ],
-  [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.84 ],
-  [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.87 ],
-  [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0.9 ],
-  [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0.99 ] ];
-
+const normaliseData = data => {
+    let ret = Array.apply(null, Array(uniqueAPs)).map(Number.prototype.valueOf,0);
+    data.forEach(ap => {
+        const isKnown = ssidIndex[ap.ssid] !== undefined ? true : false;
+        if (isKnown) ret[ssidIndex[ap.ssid]] = normaliseLevel(ap.level);
+    });
+    return ret;
+}
 
 const makeTrainingSet = (snapshots) => {
     const snaps = snapshots.map(snapshot => {
@@ -107,13 +65,13 @@ const getSnapshots = () => {
                     let it = {};
                     if (filename.indexOf('-') > -1){
                         it.x = filename.split('-')[0];
-                        it.y = filename.split('-')[1];
-                        it.data = parseData(data),
+                        it.y = filename.split('-')[1].match(/[0-9]/g).join('');
+                        it.data = parseData(data, true),
                         snapshots.push(it);
                     }
                     else {
                         it.name = filename;
-                        it.data = data;
+                        it.data = parseData(data, false),
                         queries.push(it);
                     }
                     csvProcessed ++;
@@ -126,37 +84,22 @@ const getSnapshots = () => {
 
 const normaliseQueries = (queries) => {
     return queries.map(query => {
-        return query.data
-            .filter(ap => !!ssidIndex['m' + ap.mac.replace(/:/g,'')])
-            .map(ap => {
-                return ssidIndex['m' + ap.mac.replace(/:/g,'')].concat(+ap.level.substr(1, 2)/100);
-            })
+        return normaliseData(query.data);
     })
 }
 
-const parseData = (data) => {
-    const parsed = data.map(ap => {
+const parseData = (data, addUnique) => {
+    return data.map(ap => {
         const ssid = 'm' + ap.mac.replace(/:/g,'');
         const level = +ap.level.substr(1, 2);
-        if (!ssidIndex[ssid]) {
-            ssidIndex[ssid] = true;
-            uniqueAPs ++;
+        if (addUnique && ssidIndex[ssid] === undefined) {
+            ssidIndex[ssid] = uniqueAPs++;
         }
         return {
             ssid,
             level,
         }
     });
-    // Generate normalised code for each unique ssid
-    Object.keys(ssidIndex).forEach((ssid, next) => {
-        let code = [];
-        for (let i = 0; i < uniqueAPs; i++) {
-            if (i !== next) code.push(0);
-            else code.push(1);
-        };
-        ssidIndex[ssid] = code;
-    });
-    return parsed;
 };
 
 const parseOutput = (output) => {
@@ -171,11 +114,12 @@ getSnapshots().then(snapshots => {
     console.log('uniqueAPs', uniqueAPs);
     console.log('queries', queries.length);
 
-    var network = new Architect.Perceptron(uniqueAPs + 1, 10, 2)
+    var network = new Architect.Perceptron(uniqueAPs + 1, 4, 2)
     var trainer = new Trainer(network);
     var trainingSet = makeTrainingSet(snapshots);
 
     console.log('trainingSets', trainingSet.length);
+    console.log('trainingSet0', trainingSet[0]);
 
     console.log('ssidIndex', Object.keys(ssidIndex).length);
 
@@ -187,12 +131,13 @@ getSnapshots().then(snapshots => {
         })
     }
 
-    // console.log(normaliseQueries(queries)[0].length);
+    // console.log(normaliseQueries(queries));
+    // console.log('ssidIndex', ssidIndex);
 
     console.time('Training');
     trainer.train(trainingSet,{
         rate: .1,
-        iterations: 100000,
+        iterations: 50000,
         error: .005,
         shuffle: true,
         log: 10000,
@@ -202,7 +147,8 @@ getSnapshots().then(snapshots => {
 
     const predict = (list) => {
         const outputs = list.map(ap => {
-            return network.activate(ap);
+            const output = network.activate(ap);
+            return output;
         });
         const sumX = outputs.reduce((total, ap) => { return ap[0] + total }, 0);
         const sumY = outputs.reduce((total, ap) => { return ap[1] + total }, 0);
@@ -210,10 +156,10 @@ getSnapshots().then(snapshots => {
         return parseOutput([sumX / length, sumY / length]);
     };
 
-    console.log('11', predict(getInput(1,1)));
-    console.log('00', predict(getInput(0,0)));
-    console.log('10', predict(getInput(1,0)));
-    console.log('01', predict(getInput(0,1)));
+    console.log('11', predict(getInput(0.9,0.9)));
+    console.log('00', predict(getInput(0.1,0.1)));
+    console.log('10', predict(getInput(0.9,0.1)));
+    console.log('01', predict(getInput(0.1,0.9)));
 
     console.log('shelf', predict(normaliseQueries(queries)[0]));
     console.log('bed', predict(normaliseQueries(queries)[1]));

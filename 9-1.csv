@@ -1,0 +1,15 @@
+"PushOffMyWire5ghz",0c:d6:bd:d2:56:f0,[WPA-PSK-CCMP+TKIP][WPA2-PSK-CCMP+TKIP][WPS][ESS],5200 MHz,Channel 40,-27 dBm,CenterFreq0 0 MHz,CenterFreq1 0 MHz,ChannelWidth 20 MHz
+"PushOffMyWire",0c:d6:bd:d2:56:ec,[WPA-PSK-CCMP+TKIP][WPA2-PSK-CCMP+TKIP][WPS][ESS],2412 MHz,Channel 1,-34 dBm,CenterFreq0 0 MHz,CenterFreq1 0 MHz,ChannelWidth 20 MHz
+"VM6961594",c0:05:c2:6d:02:37,[WPA-PSK-CCMP+TKIP][WPA2-PSK-CCMP+TKIP][WPS][ESS],5220 MHz,Channel 44,-63 dBm,CenterFreq0 0 MHz,CenterFreq1 0 MHz,ChannelWidth 20 MHz
+"VM142470-5G",e4:f4:c6:66:60:28,[WPA2-PSK-CCMP][WPS][ESS],5180 MHz,Channel 36,-77 dBm,CenterFreq0 0 MHz,CenterFreq1 0 MHz,ChannelWidth 20 MHz
+"VM142470-2G",e4:f4:c6:7f:a1:f0,[WPA-PSK-CCMP+TKIP][WPA2-PSK-CCMP+TKIP][WPS][ESS],2437 MHz,Channel 6,-78 dBm,CenterFreq0 0 MHz,CenterFreq1 0 MHz,ChannelWidth 20 MHz
+"virginmedia4436439_EXT",04:a1:51:e4:d5:a8,[WPA-PSK-CCMP+TKIP][WPA2-PSK-CCMP+TKIP][WPS][ESS],2462 MHz,Channel 11,-81 dBm,CenterFreq0 0 MHz,CenterFreq1 0 MHz,ChannelWidth 20 MHz
+"BTWifi-with-FON",c2:91:f9:5a:6f:42,[ESS],2412 MHz,Channel 1,-84 dBm,CenterFreq0 0 MHz,CenterFreq1 0 MHz,ChannelWidth 20 MHz
+"TALKTALK-13B4E8",54:b8:0a:13:b4:e8,[WPA-PSK-CCMP+TKIP][WPA2-PSK-CCMP+TKIP][WPS][ESS],2437 MHz,Channel 6,-81 dBm,CenterFreq0 0 MHz,CenterFreq1 0 MHz,ChannelWidth 20 MHz
+"TALKTALK65B246-5G",64:a6:51:65:b2:4c,[WPA-PSK-CCMP+TKIP][WPA2-PSK-CCMP+TKIP][WPS][ESS],2462 MHz,Channel 11,-81 dBm,CenterFreq0 0 MHz,CenterFreq1 0 MHz,ChannelWidth 20 MHz
+"BTWifi-X",e2:91:f9:5a:6f:42,[WPA-EAP-CCMP+TKIP][WPA2-EAP-CCMP+TKIP-preauth][ESS],2412 MHz,Channel 1,-84 dBm,CenterFreq0 0 MHz,CenterFreq1 0 MHz,ChannelWidth 20 MHz
+"PhilBecca",00:91:f9:5a:6f:42,[WPA2-PSK-CCMP][WPS][ESS],2412 MHz,Channel 1,-78 dBm,CenterFreq0 0 MHz,CenterFreq1 0 MHz,ChannelWidth 20 MHz
+"virginmedia4436439",10:0d:7f:c4:5e:61,[WPA-PSK-CCMP+TKIP][WPA2-PSK-CCMP+TKIP][WPS][ESS],2462 MHz,Channel 11,-81 dBm,CenterFreq0 0 MHz,CenterFreq1 0 MHz,ChannelWidth 20 MHz
+"VM5421369",c0:05:c2:65:29:79,[WPA-PSK-CCMP+TKIP][WPA2-PSK-CCMP+TKIP][WPS][ESS],2462 MHz,Channel 11,-87 dBm,CenterFreq0 0 MHz,CenterFreq1 0 MHz,ChannelWidth 20 MHz
+"TALKTALK65B246-5G_2GEXT",2c:30:33:d4:70:9c,[WPA-PSK-CCMP+TKIP][WPA2-PSK-CCMP+TKIP][WPS][ESS],2462 MHz,Channel 11,-90 dBm,CenterFreq0 0 MHz,CenterFreq1 0 MHz,ChannelWidth 20 MHz
+"",fa:8f:ca:30:f7:d9,[ESS],2412 MHz,Channel 1,-54 dBm,CenterFreq0 0 MHz,CenterFreq1 0 MHz,ChannelWidth 20 MHz
